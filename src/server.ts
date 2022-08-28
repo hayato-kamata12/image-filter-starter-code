@@ -29,42 +29,45 @@ const fs = require("fs");
   //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
 
   /**************************************************************************** */
-  app.get("/filteredimage", async (req, res) => {
-    const filteredImgurl: string = req.query.image_url;
-    // validate the image_url query
-    if (!filteredImgurl) {
-      return res
-        .status(422)
-        .send({ message: "image url is not unprocessable" });
-    }
-    // call filterImageFromURL(image_url) to filter the image
-    // try this image "https://www.cdc.gov/healthypets/images/pets/cute-dog-headshot.jpg"
-    filterImageFromURL(filteredImgurl)
-      .then((result) => {
-        // send the resulting file in the response
-        res.status(200).sendFile(result, () => {
-          // deletes any files on the server on finish of the response
-          const imgdelDir: string = path.dirname(result);
-          if (imgdelDir) {
-            const imgNames: Array<string> = fs.readdirSync(imgdelDir);
-            const imgdelFiles: Array<string> = imgNames.map(
-              (imgFile) => imgdelDir + "/" + imgFile
-            );
-            // console.log(imgdelFiles);
-            deleteLocalFiles(imgdelFiles);
-          }
+  app.get(
+    "/filteredimage",
+    async (req: express.Request, res: express.Response) => {
+      const filteredImgurl: string = req.query.image_url;
+      // validate the image_url query
+      if (!filteredImgurl) {
+        return res
+          .status(422)
+          .send({ message: "image url is not unprocessable" });
+      }
+      // call filterImageFromURL(image_url) to filter the image
+      // try this image "https://www.cdc.gov/healthypets/images/pets/cute-dog-headshot.jpg"
+      filterImageFromURL(filteredImgurl)
+        .then((result) => {
+          // send the resulting file in the response
+          res.status(200).sendFile(result, () => {
+            // deletes any files on the server on finish of the response
+            const imgdelDir: string = path.dirname(result);
+            if (imgdelDir) {
+              const imgNames: Array<string> = fs.readdirSync(imgdelDir);
+              const imgdelFiles: Array<string> = imgNames.map(
+                (imgFile) => imgdelDir + "/" + imgFile
+              );
+              // console.log(imgdelFiles);
+              deleteLocalFiles(imgdelFiles);
+            }
+          });
+        })
+        .catch((reject) => {
+          res.status(422).send({ message: +reject });
         });
-      })
-      .catch((reject) => {
-        res.status(422).send({ message: +reject });
-      });
-  });
+    }
+  );
 
   //! END @TODO1
 
   // Root Endpoint
   // Displays a simple message to the user
-  app.get("/", async (req, res) => {
+  app.get("/", async (req: Request, res: Response) => {
     res.send("try GET /filteredimage?image_url={{}}");
   });
 
